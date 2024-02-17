@@ -1,0 +1,84 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  user
+  admin
+  receptionist
+}
+
+enum BookingStatus {
+  new
+  checkIn
+  checkOut
+}
+
+model User {
+  id String @id @default(cuid())
+
+  username String @unique
+  photo String @db.Text
+  email String @unique
+  password String
+  role Role @default(user)
+
+  booking Booking[]
+}
+
+model RoomType {
+  id String @id @default(cuid())
+
+  name String
+  price String
+  desc String @db.LongText
+  image String @db.Text
+
+  rooms Room[]
+  booking Booking[]
+}
+
+model Room {
+  id String @id @default(cuid())
+
+  number Int
+  roomTypeId String
+  roomType RoomType @relation(fields: [roomTypeId], references: [id], onDelete: Cascade)
+
+  bookingDetail BookingDetail[]
+}
+
+model Booking {
+  id String @id @default(cuid())
+
+  bookerName String
+  bookerEmail String
+  bookingDate DateTime @default(now())
+  checkInDate DateTime
+  checkOutDate DateTime
+  guestName String
+  totalRooms Int
+  bookingStatus BookingStatus @default(new)
+  roomTypeId String
+  roomType RoomType @relation(fields: [roomTypeId], references: [id])
+  userId String
+  user User @relation(fields: [userId], references: [id])
+}
+
+model BookingDetail {
+  id String @id @default(cuid())
+
+  bookingId String
+  roomId String
+  room Room @relation(fields: [roomId], references: [id])
+  accessDate DateTime
+  price String
+}
